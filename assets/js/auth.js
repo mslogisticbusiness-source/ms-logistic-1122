@@ -2,18 +2,24 @@
 
 async function login(email, password) {
   try {
-    const res = await apiRequest("/auth/login", "POST", {
-      email,
-      password
-    });
+    let res;
 
-    if (res.token) {
+    // Try /auth/login first
+    try {
+      res = await apiRequest("/auth/login", "POST", { email, password });
+    } catch (e) {
+      // Fallback to /login
+      res = await apiRequest("/login", "POST", { email, password });
+    }
+
+    if (res && res.token) {
       localStorage.setItem("ms_token", res.token);
-      localStorage.setItem("ms_user", JSON.stringify(res.user));
+      localStorage.setItem("ms_user", JSON.stringify(res.user || {}));
       window.location.href = "dashboard.html";
     } else {
       alert("Login failed");
     }
+
   } catch (err) {
     alert("Invalid email or password");
     console.error(err);
